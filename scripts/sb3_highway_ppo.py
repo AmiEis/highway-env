@@ -11,7 +11,8 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.common.vec_env import SubprocVecEnv
 import highway_env
 
-
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 # ==================================
 #        Main script
 # ==================================
@@ -30,7 +31,7 @@ if __name__ == "__main__":
                     n_epochs=10,
                     learning_rate=5e-4,
                     gamma=0.8,
-                    verbose=2,
+                    verbose=0,
                     tensorboard_log="highway_ppo/")
         # Train the agent
         model.learn(total_timesteps=int(2e4))
