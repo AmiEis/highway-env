@@ -21,3 +21,9 @@ _build
 
 # Outputs
 **/out/*
+
+#Virtual env
+venv/
+
+*events*
+*.zip
