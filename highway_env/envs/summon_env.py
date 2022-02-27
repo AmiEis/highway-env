@@ -2,7 +2,7 @@ from gym.envs.registration import register
 import numpy as np
 
 from highway_env import utils
-from highway_env.envs import ParkingEnv
+#from highway_env.envs import ParkingEnv
 from highway_env.road.lane import StraightLane, LineType
 from highway_env.road.road import Road, RoadNetwork
 from highway_env.vehicle.kinematics import Vehicle
