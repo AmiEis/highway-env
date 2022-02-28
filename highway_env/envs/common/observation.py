@@ -211,9 +211,9 @@ class KinematicObservation(ObservationType):
                                                          sort=self.order == "sorted")
         if close_vehicles:
             origin = self.observer_vehicle if not self.absolute else None
-            df = df.append(pd.DataFrame.from_records(
+            df = pd.concat([df,pd.DataFrame.from_records(
                 [v.to_dict(origin, observe_intentions=self.observe_intentions)
-                 for v in close_vehicles[-self.vehicles_count + 1:]])[self.features],
+                 for v in close_vehicles[-self.vehicles_count + 1:]])[self.features]],
                            ignore_index=True)
         # Normalize and clip
         if self.normalize:
