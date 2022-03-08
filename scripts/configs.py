@@ -1,0 +1,53 @@
+simulation_frequency = 10
+policy_frequency = 5
+
+duration_train_sec = 15
+duration_train_steps = simulation_frequency * duration_train_sec
+vehicles_train_count = 10
+
+duration_test_sec = 60
+duration_test_sec = simulation_frequency * duration_test_sec
+vehicles_test_count = 50
+
+base_config = {"simulation_frequency": simulation_frequency,
+               "policy_frequency": policy_frequency}
+
+train_config = {"duration":duration_train_steps,
+                "vehicles_count":vehicles_train_count}
+
+train_config.update(base_config)
+
+test_config = {"duration" : duration_test_sec,
+               "vehicles_count" : vehicles_test_count}
+
+image_obs_config = {
+        "observation": {
+            "type": "GrayscaleObservation",
+            "observation_shape": (128, 64),
+            "stack_size": 4,
+            "weights": [0.2989, 0.5870, 0.1140],  # weights for RGB conversion
+            "scaling": 1.75,
+        },
+    }
+
+def get_config(is_test=False, obs_type="image"):
+    config = base_config
+    if obs_type == "image":
+        config.update(image_obs_config)
+    else:
+        raise TypeError('obs time currently not supported in configs')
+    if is_test:
+        config.update(test_config)
+    else:
+        config.update(train_config)
+    return config
+
+if __name__ =="__main__":
+    print(get_config())
+    print(get_config(is_test=True))
+
+
+
+
+
+

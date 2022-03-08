@@ -14,6 +14,7 @@ from stable_baselines3.common.vec_env import VecFrameStack
 from datetime import datetime
 import os
 from highway_env.envs.highway_env_scene import HighwayEnvFast
+from configs import get_config
 
 n_envs = 16
 n_stack = 4
@@ -21,15 +22,7 @@ tensorboard_log = "highway_ppo/"
 Alg = "PPO"
 
 if __name__ == "__main__":
-    config = {"config":{
-        "observation": {
-            "type": "GrayscaleObservation",
-            "observation_shape": (128, 64),
-            "stack_size": 4,
-            "weights": [0.2989, 0.5870, 0.1140],  # weights for RGB conversion
-            "scaling": 1.75,
-        },
-    }}
+    config = {"config": get_config()}
     env = make_vec_env(HighwayEnvFast,n_envs=16,env_kwargs=config)
     model = PPO('CnnPolicy',
                 env,
@@ -46,7 +39,7 @@ if __name__ == "__main__":
     #checkpoint_dir = Alg + "_" + datetimestr
     #base_dir = os.path.join(r"D:\projects\RL\highway-env\models", checkpoint_dir)
     models_dir = r"D:\projects\RL\highway-env\models"
-    model.learn(2_000_000)
+    model.learn(20_000)
     model.save(os.path.join(models_dir,Alg+"_"+datetimestr))
     #if not os.path.exists(base_dir):
     #    os.makedirs(base_dir)

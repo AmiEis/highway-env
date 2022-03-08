@@ -4,22 +4,16 @@ import highway_env
 import numpy as np
 from stable_baselines3.common.vec_env import VecFrameStack, DummyVecEnv
 import time
-
+from configs import get_config
 
 
 if __name__ == "__main__":
-    model = PPO.load("../models/PPO_06-03-2022")
-    config = {
-        "observation": {
-            "type": "GrayscaleObservation",
-            "observation_shape": (128, 64),
-            "stack_size": 4,
-            "weights": [0.2989, 0.5870, 0.1140],  # weights for RGB conversion
-            "scaling": 1.75,
-        },
-    }
+    #model = PPO.load("../models/PPO_06-03-2022")
+    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_07-03-2022.zip")
+
     #env = gym.make("highway-fast-v0", config=config)
-    env = highway_env.envs.HighwayEnvFast(config)
+    #env = highway_env.envs.HighwayEnvFast(config)
+    env = highway_env.envs.HighwayEnvFast(get_config(is_test=True))
     env.seed(1234)
     env.reset()
     n_collisions = 0
@@ -30,6 +24,7 @@ if __name__ == "__main__":
     cnt = 0
     cnt_mean_speed_close_to_target_5_pct = 0
     cnt_mean_speed_close_to_target_10_pct = 0
+    speeds = []
     for _ in range(n_scenes):
         start_reset = time.perf_counter()
         obs = env.reset()
@@ -54,6 +49,16 @@ if __name__ == "__main__":
             if env.config["offroad_terminal"] and not env.vehicle.on_road:
                 n_off_road += 1
             env.render()
+            for i,v in enumerate(env.road.vehicles):
+                if len(speeds)>0:
+                    if i > 0 and v.speed > speeds[i]:
+                        print('increased from {} to {} at {}'.format(speeds[i],v.speed,i))
+            speeds = []
+            for v in env.road.vehicles:
+                speeds.append(v.speed)
+
+
+
         #print("episode avg speed = ",mean_speed)
         #print('Mean step time for episode: ',np.mean(step_times))
         #print('Total step time for episode: ',np.sum(step_times))
