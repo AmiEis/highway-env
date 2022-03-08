@@ -1,5 +1,6 @@
 simulation_frequency = 10
 policy_frequency = 5
+vehicles_density = 3
 
 duration_train_sec = 15
 duration_train_steps = simulation_frequency * duration_train_sec
@@ -10,7 +11,8 @@ duration_test_sec = simulation_frequency * duration_test_sec
 vehicles_test_count = 50
 
 base_config = {"simulation_frequency": simulation_frequency,
-               "policy_frequency": policy_frequency}
+               "policy_frequency": policy_frequency,
+               "vehicles_density": vehicles_density}
 
 train_config = {"duration":duration_train_steps,
                 "vehicles_count":vehicles_train_count}
