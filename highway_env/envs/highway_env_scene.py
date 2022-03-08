@@ -73,8 +73,9 @@ class HighwayEnv(AbstractEnv):
 
             for _ in range(others):
                 target_speed = self.np_random.uniform(0.8*self.config["speed_limit"],1.1*self.config["speed_limit"])
+                speed = target_speed + self.np_random.normal(0,2)
                 vehicle = other_vehicles_type.create_random(self.road, spacing=1 / self.config["vehicles_density"],
-                                                            target_speed=target_speed)
+                                                            speed=speed, target_speed=target_speed)
                 vehicle.randomize_behavior()
                 self.road.vehicles.append(vehicle)
 
