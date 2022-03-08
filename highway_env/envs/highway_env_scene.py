@@ -41,7 +41,8 @@ class HighwayEnv(AbstractEnv):
                                        # lower speeds according to config["reward_speed_range"].
             "lane_change_reward": 0,   # The reward received at each lane change action.
             "reward_speed_range": [20, 30],
-            "offroad_terminal": False
+            "offroad_terminal": False,
+            "speed_limit": 30
         })
         return config
 
@@ -51,7 +52,7 @@ class HighwayEnv(AbstractEnv):
 
     def _create_road(self) -> None:
         """Create a road composed of straight adjacent lanes."""
-        self.road = Road(network=RoadNetwork.straight_road_network(self.config["lanes_count"], speed_limit=30),
+        self.road = Road(network=RoadNetwork.straight_road_network(self.config["lanes_count"], speed_limit=self.config["speed_limit"]),
                          np_random=self.np_random, record_history=self.config["show_trajectories"])
 
     def _create_vehicles(self) -> None:
@@ -71,7 +72,9 @@ class HighwayEnv(AbstractEnv):
             self.road.vehicles.append(controlled_vehicle)
 
             for _ in range(others):
-                vehicle = other_vehicles_type.create_random(self.road, spacing=1 / self.config["vehicles_density"])
+                target_speed = self.np_random.uniform(0.8*self.config["speed_limit"],1.1*self.config["speed_limit"])
+                vehicle = other_vehicles_type.create_random(self.road, spacing=1 / self.config["vehicles_density"],
+                                                            target_speed=target_speed)
                 vehicle.randomize_behavior()
                 self.road.vehicles.append(vehicle)
 
