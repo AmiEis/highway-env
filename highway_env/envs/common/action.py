@@ -156,7 +156,7 @@ class DiscreteAction(ContinuousAction):
     def act(self, action: int) -> None:
         cont_space = super().space()
         axes = np.linspace(cont_space.low, cont_space.high, self.actions_per_axis)
-        all_actions = list(product(axes))
+        all_actions = list(product(axes[:,0],axes[:,1]))
         super().act(all_actions[action])
 
 
