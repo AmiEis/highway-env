@@ -66,11 +66,11 @@ class HighwayEnv(AbstractEnv):
             #It will be randomly positioned between the other vehicles
             split = self.np_random.randint(others - 1)
             for _ in range(split):
-                target_speed = self.np_random.uniform(0.8*self.config["speed_limit"],1.1*self.config["speed_limit"])
+                target_speed = self.np_random.uniform(1.0*self.config["speed_limit"],1.2*self.config["speed_limit"])
                 speed = target_speed + self.np_random.normal(0,2)
                 vehicle = other_vehicles_type.create_random(self.road, spacing=1 / self.config["vehicles_density"],
                                                             speed=speed)
-                vehicle.target_speed=target_speed
+                vehicle.target_speed = target_speed
                 vehicle.randomize_behavior()
                 self.road.vehicles.append(vehicle)
             controlled_vehicle = self.action_type.vehicle_class.create_random(
@@ -80,13 +80,14 @@ class HighwayEnv(AbstractEnv):
                 spacing=self.config["ego_spacing"]
             )
             self.controlled_vehicles.append(controlled_vehicle)
-            self.road.vehicles.append(controlled_vehicle)
+            #self.road.vehicles.append(controlled_vehicle)
+            self.road.vehicles.insert(0,controlled_vehicle)
             for _ in range(split,others):
-                target_speed = self.np_random.uniform(0.8*self.config["speed_limit"],1.1*self.config["speed_limit"])
+                target_speed = self.np_random.uniform(0.8*self.config["speed_limit"],0.95*self.config["speed_limit"])
                 speed = target_speed + self.np_random.normal(0,2)
                 vehicle = other_vehicles_type.create_random(self.road, spacing=1 / self.config["vehicles_density"],
                                                             speed=speed)
-                vehicle.target_speed=target_speed
+                vehicle.target_speed = target_speed
                 vehicle.randomize_behavior()
                 self.road.vehicles.append(vehicle)
 
