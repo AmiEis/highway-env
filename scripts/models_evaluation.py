@@ -9,12 +9,13 @@ from configs import get_config
 
 if __name__ == "__main__":
     #model = PPO.load("../models/PPO_06-03-2022")
-    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_07-03-2022.zip")
+    #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_09-03-2022.zip")
+    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_10-03-2022\no_7.zip")
 
     #env = gym.make("highway-fast-v0", config=config)
     #env = highway_env.envs.HighwayEnvFast(config)
-    env = highway_env.envs.HighwayEnvFast(get_config(is_test=True))
-    env.seed(1234)
+    env = highway_env.envs.HighwayEnvFast(get_config(is_test=False))
+    env.seed(123)
     env.reset()
     n_collisions = 0
     n_off_road = 0
@@ -32,9 +33,13 @@ if __name__ == "__main__":
         #print('Time to reset: ',end_reset - start_reset)
         done = False
         step_times = []
+        target_speeds = [v.target_speed for v in env.road.vehicles]
+        #print(env.road.vehicles[2].target_speed,env.road.vehicles[2].speed)
         while not done:
             action, _ = model.predict(obs,deterministic=True)
             ego_speed = env.controlled_vehicles[0].speed
+            #print('action = {}, speed = {}, lane = {}'.format(action, ego_speed,env.vehicle.target_lane_index[2]))
+            #print(env.road.vehicles[2].speed)
             mean_speed = float(cnt)/(cnt+1)*mean_speed + 1.0/(cnt + 1)*ego_speed
             cnt += 1
             start_step = time.perf_counter()
@@ -49,13 +54,13 @@ if __name__ == "__main__":
             if env.config["offroad_terminal"] and not env.vehicle.on_road:
                 n_off_road += 1
             env.render()
-            for i,v in enumerate(env.road.vehicles):
-                if len(speeds)>0:
-                    if i > 0 and v.speed > speeds[i]:
-                        print('increased from {} to {} at {}'.format(speeds[i],v.speed,i))
-            speeds = []
-            for v in env.road.vehicles:
-                speeds.append(v.speed)
+            time.sleep(0.05)
+            # if done:
+            #     print("done")
+            #for i,v in enumerate(env.road.vehicles):
+            #    if i > 0 and v.speed > target_speeds[i]:
+            #        print('increased from {} to {} at {}'.format(target_speeds[i],v.speed,i))
+
 
 
 

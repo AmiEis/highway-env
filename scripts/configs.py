@@ -1,29 +1,31 @@
 simulation_frequency = 12
 policy_frequency = 3
-vehicles_density = 3
+vehicles_density = 1
 right_lane_reward = 0.01
 high_speed_reward = 0.2
+collision_reward = -3.0
 
-duration_train_sec = 15
+duration_train_sec = 10
 duration_train_steps = simulation_frequency * duration_train_sec
 vehicles_train_count = 10
 
-duration_test_sec = 60
-duration_test_sec = simulation_frequency * duration_test_sec
-vehicles_test_count = 50
+duration_test_sec = 30
+duration_test_steps = simulation_frequency * duration_test_sec
+vehicles_test_count = 60
 
 base_config = {"simulation_frequency": simulation_frequency,
                "policy_frequency": policy_frequency,
                "vehicles_density": vehicles_density,
                "high_speed_reward":high_speed_reward,
-               "right_lane_reward": right_lane_reward}
+               "right_lane_reward": right_lane_reward,
+               "collision_reward":collision_reward}
 
 train_config = {"duration":duration_train_steps,
                 "vehicles_count":vehicles_train_count}
 
 train_config.update(base_config)
 
-test_config = {"duration": duration_test_sec,
+test_config = {"duration": duration_test_steps,
                "vehicles_count": vehicles_test_count}
 
 image_obs_config = {

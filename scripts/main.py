@@ -42,7 +42,7 @@ if __name__ == "__main__":
         os.makedirs(models_dir)
     for i in range(8):
         model.learn(1_000_000,reset_num_timesteps=True if i==0 else False)
-        model.save(os.path.join(models_dir, Alg+"_"+datetimestr, "no_" + str(i)))
+        model.save(os.path.join(models_dir, "no_" + str(i)))
     #model.learn(2_000_000)
     #model.save(os.path.join(models_dir,Alg+"_"+datetimestr))
 
