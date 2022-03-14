@@ -5,18 +5,21 @@ import numpy as np
 from stable_baselines3.common.vec_env import VecFrameStack, DummyVecEnv
 import time
 from configs import get_config
+from highway_env.road.my_image_renderer import MyImageRenderer
+import matplotlib.pyplot as plt
 
 
 if __name__ == "__main__":
     #model = PPO.load("../models/PPO_06-03-2022")
-    #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_09-03-2022.zip")
-    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_10-03-2022\no_7.zip")
+    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_07-03-2022.zip")
+    #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_10-03-2022\no_7.zip")
 
     #env = gym.make("highway-fast-v0", config=config)
     #env = highway_env.envs.HighwayEnvFast(config)
     env = highway_env.envs.HighwayEnvFast(get_config(is_test=False))
     env.seed(123)
     env.reset()
+    myImageRenderer = MyImageRenderer(env)
     n_collisions = 0
     n_off_road = 0
     n_success = 0
@@ -53,8 +56,10 @@ if __name__ == "__main__":
                 n_success += 1
             if env.config["offroad_terminal"] and not env.vehicle.on_road:
                 n_off_road += 1
-            env.render()
-            time.sleep(0.05)
+            myImageRenderer.my_render()
+            #env.render()
+            plt.pause(0.0001)
+            #time.sleep(0.05)
             # if done:
             #     print("done")
             #for i,v in enumerate(env.road.vehicles):
