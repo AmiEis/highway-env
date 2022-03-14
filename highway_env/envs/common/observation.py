@@ -10,6 +10,7 @@ from highway_env.envs.common.graphics import EnvViewer
 from highway_env.road.lane import AbstractLane
 from highway_env.utils import distance_to_circle, Vector
 from highway_env.vehicle.controller import MDPVehicle
+from highway_env.road.my_image_renderer import MyImageRenderer
 
 if TYPE_CHECKING:
     from highway_env.envs.common.abstract import AbstractEnv
@@ -99,6 +100,42 @@ class GrayscaleObservation(ObservationType):
         raw_rgb = self.viewer.get_image()  # H x W x C
         raw_rgb = np.moveaxis(raw_rgb, 0, 1)
         return np.dot(raw_rgb[..., :3], self.weights).clip(0, 255).astype(np.uint8)
+
+
+class MyHighwayGrayscale(ObservationType):
+    def __init__(self, env: 'AbstractEnv',
+                observation_shape: Tuple[int, int],
+                stack_size: int,
+                scaling: Optional[float] = None,
+                centering_position: Optional[List[float]] = None,
+                ** kwargs) -> None:
+        super().__init__(env)
+        self.observation_shape = observation_shape
+        self.shape = (stack_size,) + self.observation_shape
+        self.obs = np.zeros(self.shape)
+        renderer_config = env.config.copy()
+        renderer_config.update({
+            "offscreen_rendering": True,
+            "screen_width": self.observation_shape[0],
+            "screen_height": self.observation_shape[1],
+            "scaling": scaling or renderer_config["scaling"],
+            "centering_position": centering_position or renderer_config["centering_position"]
+        })
+        self.renderer = MyImageRenderer(env, config=renderer_config)
+
+    def space(self) -> spaces.Space:
+        return spaces.Box(shape=self.shape, low=0, high=255, dtype=np.uint8)
+
+    def observe(self) -> np.ndarray:
+        new_obs = self.render()
+        self.obs = np.roll(self.obs, -1, axis=0)
+        self.obs[-1, :, :] = new_obs
+        return self.obs
+
+    def render(self) -> np.ndarray:
+        self.renderer.my_render()
+        return self.renderer.image
+
 
 
 class TimeToCollisionObservation(ObservationType):
@@ -612,6 +649,8 @@ def observation_factory(env: 'AbstractEnv', config: dict) -> ObservationType:
         return KinematicsGoalObservation(env, **config)
     elif config["type"] == "GrayscaleObservation":
         return GrayscaleObservation(env, **config)
+    elif config["type"] == "MyImageObservation":
+        return MyHighwayGrayscale(env, **config)
     elif config["type"] == "AttributesObservation":
         return AttributesObservation(env, **config)
     elif config["type"] == "MultiAgentObservation":
