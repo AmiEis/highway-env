@@ -2,14 +2,22 @@ import cv2 as cv
 import numpy as np
 import highway_env.envs.highway_env_scene as highway_env_scene
 import matplotlib.pyplot as plt
+from highway_env.road.lane import LineType
 
 
 class MyImageRenderer:
+    STRIPES_LENGTH = 2
+    STRIPES_SEP = 4
+
     def __init__(self, env :highway_env_scene, config = None):
         self.config = config or env.config
         self.env = env
         self.image_dims = (self.config["screen_width"], self.config["screen_height"])
         self.image = np.zeros(self.image_dims).astype(np.uint8)
+        self.start_stripes = 0
+        self.strip_length = int(self.STRIPES_LENGTH * self.config["scaling"])
+        self.strip_sep = int(self.STRIPES_SEP * self.config["scaling"])
+        self.prev_pos = None
 
     def center2tl(self, pt):
         centering_position = self.config["centering_position"]
@@ -34,14 +42,24 @@ class MyImageRenderer:
             image = cv.line(image, pts[1], pts[3], color, 1)
         self.image = image
 
-    def add_lane(self, lat, color):
-        self.image = cv.line(self.image, [lat, 0], [lat, self.image_dims[0]], color, 1)
+    def add_lane(self, lat, color, type):
+        if type == LineType.STRIPED:
+            strip_start = self.start_stripes
+            while strip_start < self.image_dims[0]:
+                self.image = cv.line(self.image, [lat, strip_start], [lat, strip_start + self.strip_length], color, 1)
+                strip_start += self.strip_length + self.strip_sep
+        elif type == LineType.CONTINUOUS_LINE:
+            self.image = cv.line(self.image, [lat, 0], [lat, self.image_dims[0]], color, 1)
 
     def my_render(self):
         self.image = np.zeros(self.image_dims).astype(np.uint8)
         scaling = self.config["scaling"]
         agent = self.env.vehicle
         origin = agent.position
+        prev_pos = self.prev_pos or origin[0]
+        self.start_stripes += int(np.round(((prev_pos - origin[0]) * scaling)))
+        self.prev_pos = origin[0]
+        while self.start_stripes < - self.strip_length: self.start_stripes += self.strip_length + self.strip_sep
         lane_width = agent.lane.width_at(agent.lane.start[1]) * scaling
         agent_lane_index = agent.lane_index[2]
         road = self.env.road
@@ -49,8 +67,8 @@ class MyImageRenderer:
             for _to in road.network.graph[_from].keys():
                 for ind, l in enumerate(road.network.graph[_from][_to]):
                     lane_lat = int(0.5 * (self.image_dims[1] - lane_width) + (ind - agent_lane_index) * lane_width)
-                    self.add_lane(lane_lat, 1)
-                    self.add_lane(lane_lat + int(lane_width), 1)
+                    self.add_lane(lane_lat, 1, l.line_types[0])
+                    self.add_lane(lane_lat + int(lane_width), 1, l.line_types[1])
         color = 3
         for vehicle in road.vehicles:
             v_size = (vehicle.LENGTH * scaling, vehicle.WIDTH * scaling)
@@ -60,3 +78,6 @@ class MyImageRenderer:
             color = 2
         if not self.config["offscreen_rendering"]:
             plt.imshow(self.image.swapaxes(0,1))
+
+    def reset_pos(self):
+        self.prev_pos = None
