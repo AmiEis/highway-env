@@ -61,12 +61,13 @@ class MyImageRenderer:
         self.prev_pos = origin[0]
         while self.start_stripes < - self.strip_length: self.start_stripes += self.strip_length + self.strip_sep
         lane_width = agent.lane.width_at(agent.lane.start[1]) * scaling
-        agent_lane_index = agent.lane_index[2]
         road = self.env.road
         for _from in road.network.graph.keys():
             for _to in road.network.graph[_from].keys():
                 for ind, l in enumerate(road.network.graph[_from][_to]):
-                    lane_lat = int(0.5 * (self.image_dims[1] - lane_width) + (ind - agent_lane_index) * lane_width)
+                    agent_in_lane_cs = -np.array(l.local_coordinates(np.array(origin)))*scaling
+                    lane_in_im = self.center2tl(agent_in_lane_cs)
+                    lane_lat = int(lane_in_im[1] - 0.5*lane_width)
                     self.add_lane(lane_lat, 1, l.line_types[0])
                     self.add_lane(lane_lat + int(lane_width), 1, l.line_types[1])
         color = 3
