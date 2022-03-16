@@ -7,6 +7,7 @@ import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
 from highway_env.road.my_image_renderer import MyImageRenderer
+import random
 
 
 
@@ -17,10 +18,11 @@ if __name__ == "__main__":
     #config = {"action":{"type":"DiscreteAction"}}
     #config = {"action": {"type": "ContinuousAction"}}
     env = HighwayEnvFast(get_config(is_test=False))
-    env.config["action"] = {"type":"DiscreteAction", "actions_per_axis":3}
+    #env.config["action"] = {"type":"DiscreteAction", "actions_per_axis":3}
     env.config["vehicles_density"] = 1
-    myImageRenderer = MyImageRenderer(env)
     obs = env.reset()
+    myImageRenderer = MyImageRenderer(env)
+
     #env.render()
     for i in range(10000):
         '''if i % 10 == 0:
@@ -40,7 +42,7 @@ if __name__ == "__main__":
             action = (0,0.1)
         else:
             action = (0,0)'''
-        action = 4
+        action = 3#random.choice([1,3,4])
         # if i % 100 == 0:
         #    action = np.random.randint(9)
 
@@ -49,7 +51,7 @@ if __name__ == "__main__":
          #    s = np.random.randint(2)
          #    action = 0 if s == 0 else 2
         obs, rew, done, info = env.step(action)
-        env.render()
+        #env.render()
         myImageRenderer.my_render()
         plt.pause(0.0001)
         '''speeds = [v.speed for v in env.road.vehicles]
@@ -60,6 +62,7 @@ if __name__ == "__main__":
         print(positions)'''
         if done:
             env.reset()
+            myImageRenderer.reset_pos()
             print('done')
 
 

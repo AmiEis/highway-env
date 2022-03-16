@@ -1,4 +1,4 @@
-simulation_frequency = 12
+simulation_frequency = 9
 policy_frequency = 3
 vehicles_density = 1
 right_lane_reward = 0.01
@@ -38,6 +38,7 @@ image_obs_config = {
             "scaling": 1.75,
         },
     }
+
 
 def get_config(is_test=False, obs_type="image"):
     config = base_config
