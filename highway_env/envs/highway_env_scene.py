@@ -41,8 +41,10 @@ class HighwayEnv(AbstractEnv):
                                        # lower speeds according to config["reward_speed_range"].
             "lane_change_reward": 0,   # The reward received at each lane change action.
             "reward_speed_range": [20, 30],
+            "reward_rear_brake": -0.4,
             "offroad_terminal": False,
-            "speed_limit": 30
+            "speed_limit": 30,
+            "min_punished_deceleration": 3 #if agent causes following vehicle to brake "too hard" take note in reward
         })
         return config
 
@@ -101,10 +103,14 @@ class HighwayEnv(AbstractEnv):
         lane = self.vehicle.target_lane_index[2] if isinstance(self.vehicle, ControlledVehicle) \
             else self.vehicle.lane_index[2]
         scaled_speed = utils.lmap(self.vehicle.speed, self.config["reward_speed_range"], [0, 1])
+        _, rear = self.road.neighbour_vehicles(self.vehicle)
+        rear_acc = rear.action['acceleration']
+        is_impolite = rear_acc < -self.config["min_punished_deceleration"]
         reward = \
             + self.config["collision_reward"] * self.vehicle.crashed \
             + self.config["right_lane_reward"] * lane / max(len(neighbours) - 1, 1) \
-            + self.config["high_speed_reward"] * np.clip(scaled_speed, 0, 1)
+            + self.config["high_speed_reward"] * np.clip(scaled_speed, 0, 1) \
+            + self.config["reward_rear_brake"] * is_impolite
         #reward = utils.lmap(reward,
         #                  [self.config["collision_reward"],
         #                   self.config["high_speed_reward"] + self.config["right_lane_reward"]],
