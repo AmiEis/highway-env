@@ -78,7 +78,8 @@ class MyImageRenderer:
             self.add_vehicle(np.array([v_pos[1], v_pos[0]]), v_head, (v_size[1], v_size[0]), color)
             color = 2
         if not self.config["offscreen_rendering"]:
-            plt.imshow(self.image.swapaxes(0,1))
+            return self.image.swapaxes(0,1)
+            #plt.imshow(self.image.swapaxes(0,1))
 
     def reset_pos(self):
         self.prev_pos = None

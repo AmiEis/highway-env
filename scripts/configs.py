@@ -1,9 +1,10 @@
 simulation_frequency = 9
 policy_frequency = 3
-vehicles_density = 1
+vehicles_density = 1.0
 right_lane_reward = 0.01
 high_speed_reward = 0.2
 collision_reward = -3.0
+reward_rear_brake = -0.3
 
 duration_train_sec = 10
 duration_train_steps = simulation_frequency * duration_train_sec
@@ -18,7 +19,8 @@ base_config = {"simulation_frequency": simulation_frequency,
                "vehicles_density": vehicles_density,
                "high_speed_reward":high_speed_reward,
                "right_lane_reward": right_lane_reward,
-               "collision_reward":collision_reward}
+               "collision_reward":collision_reward,
+               "reward_rear_brake":reward_rear_brake}
 
 train_config = {"duration":duration_train_steps,
                 "vehicles_count":vehicles_train_count}
@@ -32,10 +34,10 @@ image_obs_config = {
         "observation": {
             #"type": "GrayscaleObservation",
             "type": "MyImageObservation",
-            "observation_shape": (128, 64),
+            "observation_shape": (256, 64),
             "stack_size": 4,
             "weights": [0.2989, 0.5870, 0.1140],  # weights for RGB conversion
-            "scaling": 1.75,
+            "scaling": 2.5,
         },
     }
 

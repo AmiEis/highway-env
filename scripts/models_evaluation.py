@@ -1,4 +1,4 @@
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, DQN
 import gym
 import highway_env
 import numpy as np
@@ -16,23 +16,24 @@ if __name__ == "__main__":
     #model = PPO.load("../models/PPO_06-03-2022")
     #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_07-03-2022.zip")
     model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_16-03-2022\no_7.zip")
+    model = DQN.load(r"D:\projects\RL\highway-env\models\DQN_17-03-2022\DQN_2000000_steps.zip")
     Save = False
     datetimestr = datetime.now().strftime('%d-%m-%Y')
     image_folder = r"D:\projects\RL\highway-env\results\\"+datetimestr+r"\\"
     if not os.path.exists(image_folder):
         os.makedirs(image_folder)
 
-    Show = False
+    Show = True
     #env = gym.make("highway-fast-v0", config=config)
     #env = highway_env.envs.HighwayEnvFast(config)
-    env = highway_env.envs.HighwayEnvFast(get_config(is_test=True))
+    env = highway_env.envs.HighwayEnvFast(get_config(is_test=False))
     env.seed(1234)
     env.reset()
     myImageRenderer = MyImageRenderer(env)
     n_collisions = 0
     n_off_road = 0
     n_success = 0
-    n_scenes = 100
+    n_scenes = 1000
     mean_speed = 0
     cnt = 0
     cnt_mean_speed_close_to_target_5_pct = 0
@@ -78,9 +79,10 @@ if __name__ == "__main__":
             # end = time.perf_counter()
             # print('rendering: ',end-start)
             if Show:
-                plt.imshow(im)
-                plt.pause(0.001)
-                #env.render()
+                # plt.imshow(image)
+                # plt.pause(0.001)
+                # time.sleep(0.01)
+                env.render()
                 time.sleep(0.01)
             if Save:
                 imname = str(i)
