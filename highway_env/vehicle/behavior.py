@@ -14,6 +14,8 @@ class IDMVehicle(ControlledVehicle):
     A vehicle using both a longitudinal and a lateral decision policies.
 
     - Longitudinal: the IDM model computes an acceleration given the preceding vehicle's distance and speed.
+    - EDIT: the IDM model is complemented by the ACC model presented in the paper'Enhanced IDM to access the impact of
+             driving strategies on traffic capacity'. This is in order to temper breaking in mild critical situations (Ami Eisenmann)
     - Lateral: the MOBIL model decides when to change lane by maximizing the acceleration of nearby vehicles.
     """
 
@@ -38,6 +40,9 @@ class IDMVehicle(ControlledVehicle):
 
     DELTA_RANGE = [3.5, 4.5]
     """Range of delta when chosen randomly."""
+
+    COOLNESS = 0.99
+    """Weight given to CAH heuristic in calculation of ACC acceleration"""
 
     # Lateral policy parameters
     POLITENESS = 0.  # in [0, 1]
@@ -144,13 +149,29 @@ class IDMVehicle(ControlledVehicle):
         if not ego_vehicle or not isinstance(ego_vehicle, Vehicle):
             return 0
         ego_target_speed = abs(utils.not_zero(getattr(ego_vehicle, "target_speed", 0)))
-        acceleration = self.COMFORT_ACC_MAX * (
+        acceleration_idm = self.COMFORT_ACC_MAX * (
                 1 - np.power(max(ego_vehicle.speed, 0) / ego_target_speed, self.DELTA))
 
         if front_vehicle:
             d = ego_vehicle.lane_distance_to(front_vehicle)
-            acceleration -= self.COMFORT_ACC_MAX * \
+            acceleration_idm -= self.COMFORT_ACC_MAX * \
                 np.power(self.desired_gap(ego_vehicle, front_vehicle) / utils.not_zero(d), 2)
+            front_acc = front_vehicle.action["acceleration"]
+            ego_speed = ego_vehicle.speed
+            front_speed = front_vehicle.speed
+            if front_speed*(ego_speed - front_speed) < -2 * d * front_acc:
+                acceleration_cah = (ego_speed ** 2 * front_acc)  \
+                        / (front_speed ** 2 - 2 * d * front_acc)
+            else:
+                acceleration_cah = front_acc - ((ego_speed - front_speed) ** 2 * np.heaviside(ego_speed - front_speed,0)) / (2 * d)
+            if acceleration_idm >= acceleration_cah:
+                acceleration = acceleration_idm
+            else:
+                acceleration = (1 - self.COOLNESS) * acceleration_idm + \
+                               self.COOLNESS * (acceleration_cah +
+                                    abs(self.COMFORT_ACC_MIN) * np.tanh((acceleration_idm - acceleration_cah)/abs(self.COMFORT_ACC_MIN)))
+        else:
+            acceleration = acceleration_idm
         return acceleration
 
     def desired_gap(self, ego_vehicle: Vehicle, front_vehicle: Vehicle = None, projected: bool = True) -> float:
