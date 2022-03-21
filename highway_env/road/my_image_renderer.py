@@ -81,5 +81,10 @@ class MyImageRenderer:
             return self.image.swapaxes(0,1)
             #plt.imshow(self.image.swapaxes(0,1))
 
+    def is_in_image(self,vehicle):
+        scaling = self.config["scaling"]
+        image_pos = self.center2tl(scaling*(vehicle.position - self.env.vehicle.position))
+        return 0 <= image_pos[0] + 0.5 * vehicle.LENGTH * scaling and image_pos[0] - 0.5 * vehicle.LENGTH * scaling <= self.image_dims[0]
+
     def reset_pos(self):
         self.prev_pos = None
