@@ -17,13 +17,14 @@ vehicles_test_count = 60
 base_config = {"simulation_frequency": simulation_frequency,
                "policy_frequency": policy_frequency,
                "vehicles_density": vehicles_density,
-               "high_speed_reward":high_speed_reward,
+               "high_speed_reward": high_speed_reward,
                "right_lane_reward": right_lane_reward,
-               "collision_reward":collision_reward,
-               "reward_rear_brake":reward_rear_brake}
+               "collision_reward": collision_reward,
+               "reward_rear_brake": reward_rear_brake,
+               "centering_position": [0.35, 0.5]}
 
-train_config = {"duration":duration_train_steps,
-                "vehicles_count":vehicles_train_count}
+train_config = {"duration": duration_train_steps,
+                "vehicles_count": vehicles_train_count}
 
 train_config.update(base_config)
 

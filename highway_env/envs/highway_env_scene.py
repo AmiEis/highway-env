@@ -7,6 +7,7 @@ from highway_env.envs.common.action import Action
 from highway_env.road.road import Road, RoadNetwork
 from highway_env.utils import near_split
 from highway_env.vehicle.controller import ControlledVehicle
+from highway_env.envs.common.observation import MyHighwayGrayscale
 
 
 class HighwayEnv(AbstractEnv):
@@ -42,9 +43,9 @@ class HighwayEnv(AbstractEnv):
             "lane_change_reward": 0,   # The reward received at each lane change action.
             "reward_speed_range": [20, 30],
             "reward_rear_brake": -0.4,
+            "reward_rear_deceleration_range": [3.5, 6],
             "offroad_terminal": False,
-            "speed_limit": 30,
-            "min_punished_deceleration": 3 #if agent causes following vehicle to brake "too hard" take note in reward
+            "speed_limit": 30
         })
         return config
 
@@ -104,13 +105,23 @@ class HighwayEnv(AbstractEnv):
             else self.vehicle.lane_index[2]
         scaled_speed = utils.lmap(self.vehicle.speed, self.config["reward_speed_range"], [0, 1])
         _, rear = self.road.neighbour_vehicles(self.vehicle)
-        rear_acc = rear.action['acceleration']
-        is_impolite = rear_acc < -self.config["min_punished_deceleration"]
+        if not rear is None:
+            rear_acc = rear.action['acceleration']
+            #check that the agent is changing lane, and the following vehicle is in the target lane
+            is_lane_change = abs(self.vehicle.heading) > np.deg2rad(5) \
+                            and self.vehicle.velocity[1] * (rear.position[1] - self.vehicle.position[1]) > 0
+            if isinstance(self.observation_type,MyHighwayGrayscale):
+                is_in_obs = self.observation_type.renderer.is_in_image(rear)
+                is_lane_change = is_lane_change and is_in_obs # Cannot punish aggressive behaviour when vehicle not in sight
+            scaled_deceleration = utils.lmap(-rear_acc, self.config["reward_rear_deceleration_range"], [0,1])
+            rear_break_val = is_lane_change * scaled_deceleration
+        else:
+            rear_break_val = 0
         reward = \
             + self.config["collision_reward"] * self.vehicle.crashed \
             + self.config["right_lane_reward"] * lane / max(len(neighbours) - 1, 1) \
             + self.config["high_speed_reward"] * np.clip(scaled_speed, 0, 1) \
-            + self.config["reward_rear_brake"] * is_impolite
+            + self.config["reward_rear_brake"] * np.clip(rear_break_val, 0,1)
         #reward = utils.lmap(reward,
         #                  [self.config["collision_reward"],
         #                   self.config["high_speed_reward"] + self.config["right_lane_reward"]],
