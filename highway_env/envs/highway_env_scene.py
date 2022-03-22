@@ -118,7 +118,7 @@ class HighwayEnv(AbstractEnv):
         reward = 0 if not self.vehicle.on_road else reward
         return reward
 
-    def calc_rear_break(self):
+    def calc_rear_break(self, is_test=False):
         _, rear = self.road.neighbour_vehicles(self.vehicle)
         if not rear is None:
             rear_acc = rear.action['acceleration']
@@ -128,8 +128,12 @@ class HighwayEnv(AbstractEnv):
             if isinstance(self.observation_type,MyHighwayGrayscale):
                 is_in_obs = self.observation_type.renderer.is_in_image(rear)
                 is_lane_change = is_lane_change and is_in_obs # Cannot punish aggressive behaviour when vehicle not in sight
+            if is_test:
+                return is_lane_change, rear_acc
             return is_lane_change * rear_acc
         else:
+            if is_test:
+                return False, 0
             return 0
 
     def _is_terminal(self) -> bool:
