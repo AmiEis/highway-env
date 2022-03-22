@@ -130,7 +130,7 @@ if __name__ == "__main__":
             cnt_mean_speed_close_to_target_10_pct += 1
         cnt = 0
     print("Sucess rate = ",float(n_success)/n_scenes)
-    print("Collisions per KM: {}".format(float(n_collisions)/(distance_passed/1000)))
+    print("km per collision: {}".format((distance_passed/1000)/float(n_collisions)))
     print("Rate Ego speed at 5% of target speed: ",float(cnt_mean_speed_close_to_target_5_pct)/n_scenes)
     print("Rate Ego speed at 10% of target speed: ",float(cnt_mean_speed_close_to_target_10_pct)/n_scenes)
     print("Rate of emergency breaks per lane change: ",float(rear_breaking_n)/float(lane_changes_n))
