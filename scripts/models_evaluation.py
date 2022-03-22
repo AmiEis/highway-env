@@ -15,8 +15,9 @@ import os
 if __name__ == "__main__":
     #model = PPO.load("../models/PPO_06-03-2022")
     #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_07-03-2022.zip")
-    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_16-03-2022\no_7.zip")
-    model = DQN.load(r"D:\projects\RL\highway-env\models\DQN_17-03-2022\DQN_2000000_steps.zip")
+    #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_14-03-2022\no_4.zip")
+    #model = DQN.load(r"D:\projects\RL\highway-env\models\DQN_17-03-2022\DQN_2000000_steps.zip")
+    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_22-03-2022\PPO_1000000_steps.zip")
     Save = False
     datetimestr = datetime.now().strftime('%d-%m-%Y')
     image_folder = r"D:\projects\RL\highway-env\results\\"+datetimestr+r"\\"
@@ -40,6 +41,9 @@ if __name__ == "__main__":
     cnt_mean_speed_close_to_target_10_pct = 0
     speeds = []
     i = 0
+    lane_change = False
+    lane_changes_n = 0
+    rear_breaking_n = 0
     for _ in range(n_scenes):
         start_reset = time.perf_counter()
         obs = env.reset()
@@ -57,9 +61,17 @@ if __name__ == "__main__":
             #print(env.road.vehicles[2].speed)
             mean_speed = float(cnt)/(cnt+1)*mean_speed + 1.0/(cnt + 1)*ego_speed
             cnt += 1
+            ego_vehicle_lane = env.vehicle.lane_index
             start_step = time.perf_counter()
             obs, reward, done, info = env.step(action)
             end_step = time.perf_counter()
+            lane_change = ego_vehicle_lane != env.vehicle.lane_index
+            if lane_change:
+                has_rear, rear_break = env.calc_rear_break(is_test=True)
+                if has_rear:
+                    lane_changes_n += 1
+                    if rear_break < -4.5:
+                        rear_breaking_n += 1
             #print('step time = ', end_step - start_step)
             # new_speeds = [v.speed for v in env.road.vehicles]
             # for i, (s_o, s_n) in enumerate(zip(new_speeds, speeds)):
@@ -75,6 +87,7 @@ if __name__ == "__main__":
                 n_off_road += 1
             # start = time.perf_counter()
             image = myImageRenderer.my_render()
+            # plt.imshow(image)
             # plt.pause(0.0001)
             # end = time.perf_counter()
             # print('rendering: ',end-start)
@@ -116,3 +129,4 @@ if __name__ == "__main__":
     print("Num collisions: {} out of {} scenes".format(n_collisions,n_scenes))
     print("Rate Ego speed at 5% of target speed: ",float(cnt_mean_speed_close_to_target_5_pct)/n_scenes)
     print("Rate Ego speed at 10% of target speed: ",float(cnt_mean_speed_close_to_target_10_pct)/n_scenes)
+    print("Rate of emergency breaks per lane change: ",float(rear_breaking_n)/float(lane_changes_n))
