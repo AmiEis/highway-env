@@ -24,7 +24,7 @@ if __name__ == "__main__":
     if not os.path.exists(image_folder):
         os.makedirs(image_folder)
 
-    Show = True
+    Show = False
     #env = gym.make("highway-fast-v0", config=config)
     #env = highway_env.envs.HighwayEnvFast(config)
     env = highway_env.envs.HighwayEnvFast(get_config(is_test=False))
@@ -44,6 +44,7 @@ if __name__ == "__main__":
     lane_change = False
     lane_changes_n = 0
     rear_breaking_n = 0
+    distance_passed = 0
     for _ in range(n_scenes):
         start_reset = time.perf_counter()
         obs = env.reset()
@@ -54,6 +55,7 @@ if __name__ == "__main__":
         target_speeds = [v.target_speed for v in env.road.vehicles]
         #print(env.road.vehicles[2].target_speed,env.road.vehicles[2].speed)
         speeds = [v.speed for v in env.road.vehicles]
+        pos_start = env.vehicle.position[0]
         while not done:
             action, _ = model.predict(obs,deterministic=True)
             ego_speed = env.controlled_vehicles[0].speed
@@ -70,7 +72,7 @@ if __name__ == "__main__":
                 has_rear, rear_break = env.calc_rear_break(is_test=True)
                 if has_rear:
                     lane_changes_n += 1
-                    if rear_break < -4.5:
+                    if rear_break <= -5:
                         rear_breaking_n += 1
             #print('step time = ', end_step - start_step)
             # new_speeds = [v.speed for v in env.road.vehicles]
@@ -107,7 +109,9 @@ if __name__ == "__main__":
                 cv.imwrite(image_folder + imname + ".png", image)
                 i += 1
 
-            # if done:
+            if done:
+                pos_end = env.vehicle.position[0]
+                distance_passed += pos_end - pos_start
             #     myImageRenderer.reset_pos()
             #     print("done")
             #for i,v in enumerate(env.road.vehicles):
@@ -126,7 +130,7 @@ if __name__ == "__main__":
             cnt_mean_speed_close_to_target_10_pct += 1
         cnt = 0
     print("Sucess rate = ",float(n_success)/n_scenes)
-    print("Num collisions: {} out of {} scenes".format(n_collisions,n_scenes))
+    print("Collisions per KM: {}".format(float(n_collisions)/(distance_passed/1000)))
     print("Rate Ego speed at 5% of target speed: ",float(cnt_mean_speed_close_to_target_5_pct)/n_scenes)
     print("Rate Ego speed at 10% of target speed: ",float(cnt_mean_speed_close_to_target_10_pct)/n_scenes)
     print("Rate of emergency breaks per lane change: ",float(rear_breaking_n)/float(lane_changes_n))
