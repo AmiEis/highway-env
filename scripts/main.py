@@ -19,12 +19,14 @@ from sys import exit
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 n_envs = 16
-alg = 'DQN'
+alg = 'PPO'
 tensorboard_log = "highway_{}/".format(alg.lower())
+save_freq = 1_000_000
 
 if __name__ == "__main__":
     config = {"config": get_config()}
     if alg == 'PPO':
+        save_freq = max(save_freq // n_envs, 1)
         env = make_vec_env(HighwayEnvFast, n_envs=16, env_kwargs=config)
         model = PPO('CnnPolicy',
                     env,
@@ -64,7 +66,6 @@ if __name__ == "__main__":
             os.makedirs(models_dir)
 
     # Save a checkpoint every save_freq steps
-    save_freq = 1_000_000
     checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=models_dir,
                                              name_prefix=alg)
     model.learn(8_000_000,callback=checkpoint_callback)
