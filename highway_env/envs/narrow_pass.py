@@ -11,15 +11,15 @@ class NarrowPass(AbstractEnv):
 
     def _make_road(self):
         net = RoadNetwork()
-        net.add_lane("a", "b", StraightLane([0, 0], [40, 0],
-                                            line_types=(LineType.CONTINUOUS_LINE,LineType.STRIPED)))
-        net.add_lane("a", "b", StraightLane([0, 4], [40, 4],
+        net.add_lane("b", "a", StraightLane([40, 0], [0, 0],
                                             line_types=(LineType.STRIPED,LineType.CONTINUOUS_LINE)))
-        net.add_lane("b","b1",
-                     SineLane([40,0],[50,2],0.5,np.pi/20,-0.5*np.pi,line_types=[LineType.CONTINUOUS_LINE, LineType.NONE]))
+        net.add_lane("a", "b", StraightLane([0, 4], [40, 4],
+                                            line_types=(LineType.NONE,LineType.CONTINUOUS_LINE)))
+        net.add_lane("b1","b",
+                     SineLane([50,2], [40, 0],0.5,np.pi/20,0.5*np.pi,line_types=[LineType.NONE, LineType.CONTINUOUS_LINE]))
         net.add_lane("b","b1",
                      SineLane([40,4],[50,2],0.5,np.pi/20,0.5*np.pi,line_types = [LineType.NONE, LineType.CONTINUOUS_LINE]))
-        net.add_lane("b1","c1",StraightLane([50,2], [70, 2]))
+        net.add_lane("b1","c1",StraightLane([50,2], [70, 2], line_types=(LineType.CONTINUOUS_LINE,LineType.CONTINUOUS_LINE)))
         net.add_lane("c1", "c",
                      SineLane([70, 2], [80, 4], 0.5, np.pi / 20, 0.5 * np.pi,
                               line_types=[LineType.NONE, LineType.CONTINUOUS_LINE]))
@@ -34,7 +34,7 @@ class NarrowPass(AbstractEnv):
     def _make_vehicles(self):
         road = self.road
         ego_vehicle = self.action_type.vehicle_class(road,
-                                                 road.network.get_lane(("a", "b", 1)).position(20, 0),
+                                                 road.network.get_lane(("a", "b", 0)).position(20, 0),
                                                  speed=12)
         road.vehicles.append(ego_vehicle)
         self.vehicle = ego_vehicle

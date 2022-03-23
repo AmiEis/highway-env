@@ -17,7 +17,7 @@ if __name__ == "__main__":
     #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_07-03-2022.zip")
     #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_14-03-2022\no_4.zip")
     #model = DQN.load(r"D:\projects\RL\highway-env\models\DQN_17-03-2022\DQN_2000000_steps.zip")
-    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_22-03-2022\PPO_1000000_steps.zip")
+    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_22-03-2022\PPO_4000000_steps.zip")
     Save = False
     datetimestr = datetime.now().strftime('%d-%m-%Y')
     image_folder = r"D:\projects\RL\highway-env\results\\"+datetimestr+r"\\"
