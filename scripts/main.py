@@ -1,16 +1,5 @@
-import gym
-import torch as th
 from stable_baselines3 import PPO, DQN
-from torch.distributions import Categorical
-import torch
-import torch.nn as nn
-import numpy as np
-from torch.nn import functional as F
 from stable_baselines3.common.env_util import make_vec_env, DummyVecEnv
-from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
-from stable_baselines3.common.vec_env import SubprocVecEnv
-import highway_env
-from stable_baselines3.common.vec_env import VecFrameStack
 from datetime import datetime
 import os
 from highway_env.envs.highway_env_scene import HighwayEnvFast
@@ -19,7 +8,7 @@ from sys import exit
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 n_envs = 16
-alg = 'PPO'
+alg = 'DQN'
 tensorboard_log = "highway_{}/".format(alg.lower())
 save_freq = 1_000_000
 
@@ -43,7 +32,7 @@ if __name__ == "__main__":
         model = DQN('CnnPolicy',
                     DummyVecEnv([lambda: HighwayEnvFast(config=get_config())]),
                     learning_rate=1e-4,
-                    buffer_size=200_000,
+                    buffer_size=300_000,
                     learning_starts=1000,
                     batch_size=32,
                     gamma=0.95,

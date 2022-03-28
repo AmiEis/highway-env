@@ -18,6 +18,10 @@ class HighwayEnv(AbstractEnv):
     staying on the rightmost lanes and avoiding collisions.
     """
 
+    def __init__(self, config: dict = None):
+        super().__init__(config)
+        self.lat_speed_buffer = np.zeros(self.config["lat_speed_buffer_size"])
+
     @classmethod
     def default_config(cls) -> dict:
         config = super().default_config()
@@ -45,9 +49,11 @@ class HighwayEnv(AbstractEnv):
             "reward_rear_brake": -0.4,
             "reward_rear_deceleration_range": [3.5, 6],
             "offroad_terminal": False,
-            "speed_limit": 30
+            "speed_limit": 30,
+            "lat_speed_buffer_size": 6
         })
         return config
+
 
     def _reset(self) -> None:
         self._create_road()
@@ -106,6 +112,12 @@ class HighwayEnv(AbstractEnv):
         scaled_speed = utils.lmap(self.vehicle.speed, self.config["reward_speed_range"], [0, 1])
         rear_break = self.calc_rear_break()
         scaled_deceleration = utils.lmap(-rear_break,self.config["reward_rear_deceleration_range"], [0,1])
+        #self.lat_speed_buffer = np.roll(self.lat_speed_buffer,1)
+        #self.lat_speed_buffer[0] = self.vehicle.velocity[1]
+        #lat_variation = np.sum(np.abs(self.lat_speed_buffer[1:]-self.lat_speed_buffer[:-1]))
+        #lat_variation_normed =\
+        #    lat_variation/utils.not_zero(abs(self.lat_speed_buffer[-1] - self.lat_speed_buffer[0]))
+        #print(lat_variation,lat_variation_normed)
         reward = \
             + self.config["collision_reward"] * self.vehicle.crashed \
             + self.config["right_lane_reward"] * lane / max(len(neighbours) - 1, 1) \
