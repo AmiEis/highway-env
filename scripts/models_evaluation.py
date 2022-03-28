@@ -17,8 +17,8 @@ if __name__ == "__main__":
     #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_07-03-2022.zip")
     #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_14-03-2022\no_4.zip")
     #model = DQN.load(r"D:\projects\RL\highway-env\models\DQN_17-03-2022\DQN_2000000_steps.zip")
-    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_22-03-2022\PPO_4000000_steps.zip")
-    Save = False
+    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_22-03-2022\PPO_8000000_steps.zip")
+    Save = True
     datetimestr = datetime.now().strftime('%d-%m-%Y')
     image_folder = r"D:\projects\RL\highway-env\results\\"+datetimestr+r"\\"
     if not os.path.exists(image_folder):
@@ -27,14 +27,14 @@ if __name__ == "__main__":
     Show = False
     #env = gym.make("highway-fast-v0", config=config)
     #env = highway_env.envs.HighwayEnvFast(config)
-    env = highway_env.envs.HighwayEnvFast(get_config(is_test=False))
+    env = highway_env.envs.HighwayEnvFast(get_config(is_test=True))
     env.seed(1234)
     env.reset()
     myImageRenderer = MyImageRenderer(env)
     n_collisions = 0
     n_off_road = 0
     n_success = 0
-    n_scenes = 1000
+    n_scenes = 3#1000
     mean_speed = 0
     cnt = 0
     cnt_mean_speed_close_to_target_5_pct = 0
@@ -74,6 +74,7 @@ if __name__ == "__main__":
                     lane_changes_n += 1
                     if rear_break <= -5:
                         rear_breaking_n += 1
+            #print('lat speed = {}, heading = {}, lane change = {}'.format(env.vehicle.velocity[1],env.vehicle.heading, lane_change))
             #print('step time = ', end_step - start_step)
             # new_speeds = [v.speed for v in env.road.vehicles]
             # for i, (s_o, s_n) in enumerate(zip(new_speeds, speeds)):
@@ -112,7 +113,7 @@ if __name__ == "__main__":
             if done:
                 pos_end = env.vehicle.position[0]
                 distance_passed += pos_end - pos_start
-            #     myImageRenderer.reset_pos()
+                myImageRenderer.reset_pos()
             #     print("done")
             #for i,v in enumerate(env.road.vehicles):
             #    if i > 0 and v.speed > target_speeds[i]:
