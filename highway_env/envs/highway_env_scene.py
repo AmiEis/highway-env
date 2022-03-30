@@ -8,6 +8,7 @@ from highway_env.road.road import Road, RoadNetwork
 from highway_env.utils import near_split
 from highway_env.vehicle.controller import ControlledVehicle
 from highway_env.envs.common.observation import MyHighwayGrayscale
+from highway_env.envs.common.cpp_accelerator import ActAccelerator
 
 
 class HighwayEnv(AbstractEnv):
@@ -20,6 +21,7 @@ class HighwayEnv(AbstractEnv):
 
     def __init__(self, config: dict = None):
         super().__init__(config)
+        self.actAccelerator = ActAccelerator()
         self.lat_speed_buffer = np.zeros(self.config["lat_speed_buffer_size"])
 
     @classmethod

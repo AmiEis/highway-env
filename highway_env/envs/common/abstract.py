@@ -14,6 +14,7 @@ from highway_env.envs.common.graphics import EnvViewer
 from highway_env.vehicle.behavior import IDMVehicle, LinearVehicle
 from highway_env.vehicle.controller import MDPVehicle
 from highway_env.vehicle.kinematics import Vehicle
+import highway_env.envs.highway_env_scene as he
 
 Observation = np.ndarray
 
@@ -232,7 +233,15 @@ class AbstractEnv(gym.Env):
                     and self.time % int(self.config["simulation_frequency"] // self.config["policy_frequency"]) == 0:
                 self.action_type.act(action)
 
-            self.road.act()
+            import time
+            start = time.perf_counter()
+            if isinstance(self, he.HighwayEnv) and False:
+                self.road.vehicles[0].act()
+                self.actAccelerator.act_others(self.road.vehicles)
+            else:
+                self.road.act()
+            end = time.perf_counter()
+            print('act tool {} seconds'.format(end - start))
             self.road.step(1 / self.config["simulation_frequency"])
             self.time += 1
 
