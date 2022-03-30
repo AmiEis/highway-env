@@ -292,6 +292,19 @@ class IDMVehicle(ControlledVehicle):
                 return -self.COMFORT_ACC_MAX / 2
         return acceleration
 
+    #Added by me (Ami Eisenmann) to communicate with ctypes
+
+    def update_py_vehicle_from_ctypes(self, v_ctypes):
+        self.speed = v_ctypes.speed
+        self.target_speed = v_ctypes.target_speed
+        self.position = np.array([v_ctypes.position[0], v_ctypes.position[1]], dtype=np.float)
+        self.heading = v_ctypes.heading
+        self.lane_index = (self.lane_index[0], self.lane_index[1],v_ctypes.lane_index)
+        self.target_lane_index = (self.target_lane_index[0], self.target_lane_index[1],v_ctypes.target_lane_index)
+        self.timer = v_ctypes.timer
+        self.action["steering"] = v_ctypes.action_steering
+        self.action["acceleration"] = v_ctypes.action_acceleration
+
 
 class LinearVehicle(IDMVehicle):
 
