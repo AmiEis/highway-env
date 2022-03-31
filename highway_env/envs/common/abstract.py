@@ -235,13 +235,13 @@ class AbstractEnv(gym.Env):
 
             import time
             start = time.perf_counter()
-            if isinstance(self, he.HighwayEnv) and False:
+            if isinstance(self, he.HighwayEnv):
                 self.road.vehicles[0].act()
                 self.actAccelerator.act_others(self.road.vehicles)
             else:
                 self.road.act()
             end = time.perf_counter()
-            print('act tool {} seconds'.format(end - start))
+            print('act took {} seconds'.format(end - start))
             self.road.step(1 / self.config["simulation_frequency"])
             self.time += 1
 

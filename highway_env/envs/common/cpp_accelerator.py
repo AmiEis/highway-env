@@ -33,7 +33,6 @@ def vehicle_py_to_ctypes(v_py):
 
 class ActAccelerator:
     def __init__(self):
-        #accelerator_dll = CDLL(r'D:\projects\RL\highway-env-accel\cmake-build-release\libhe-accel.dll')
         accelerator_dll = CDLL(r'D:\projects\RL\highway-env-accel\cmake-build-release-visual-studio\Release\he-accel.dll')
         init_accelerator = accelerator_dll.init_accelerator
         init_accelerator.restype = c_void_p
