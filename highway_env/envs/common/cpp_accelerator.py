@@ -41,13 +41,15 @@ class ActAccelerator:
         act_all.argtypes = [c_void_p, POINTER(Vehicle), c_int]
         self.act_all = act_all
 
-    def act_others(self,vehicles):
+    def act_others(self,vehicles,is_test=False):
         ctypes_vehicles_py = []
         for v in vehicles:
             ctypes_vehicles_py.append(vehicle_py_to_ctypes(v))
         sz = len(vehicles)
         ctypes_vehicles = (Vehicle * sz)(*ctypes_vehicles_py)
         self.act_all(self.accelerator,ctypes_vehicles,c_int(sz))
+        if is_test:
+            return ctypes_vehicles
         for v_py, v_c in zip(vehicles[1:], list(ctypes_vehicles[1:sz])):
             v_py.update_py_vehicle_from_ctypes(v_c)
 
