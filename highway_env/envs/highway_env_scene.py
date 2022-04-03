@@ -22,6 +22,7 @@ class HighwayEnv(AbstractEnv):
     def __init__(self, config: dict = None):
         super().__init__(config)
         self.actAccelerator = ActAccelerator()
+        self.mean_speed = 0
         self.lat_speed_buffer = np.zeros(self.config["lat_speed_buffer_size"])
 
     @classmethod
@@ -50,6 +51,9 @@ class HighwayEnv(AbstractEnv):
             "reward_speed_range": [20, 30],
             "reward_rear_brake": -0.4,
             "reward_rear_deceleration_range": [3.5, 6],
+            "reward_speed_diff_range_pos": [0, 10],
+            "reward_speed_diff_range_neg": [0,3],
+            "reward_speed_close_to_target": 0.3,
             "offroad_terminal": False,
             "speed_limit": 30,
             "lat_speed_buffer_size": 6
@@ -60,6 +64,7 @@ class HighwayEnv(AbstractEnv):
     def _reset(self) -> None:
         self._create_road()
         self._create_vehicles()
+        self.mean_speed = 0
 
     def _create_road(self) -> None:
         """Create a road composed of straight adjacent lanes."""
@@ -114,6 +119,14 @@ class HighwayEnv(AbstractEnv):
         scaled_speed = utils.lmap(self.vehicle.speed, self.config["reward_speed_range"], [0, 1])
         rear_break = self.calc_rear_break()
         scaled_deceleration = utils.lmap(-rear_break,self.config["reward_rear_deceleration_range"], [0,1])
+        speed_target_diff = self.config["speed_limit"] - self.mean_speed
+        is_terminal = self._is_terminal()
+        scaled_speed_diff = 0
+        if is_terminal:
+            if speed_target_diff > 0:
+                scaled_speed_diff = utils.lmap(speed_target_diff, self.config["reward_speed_diff_range_pos"], [0, 1])
+            else:
+                scaled_speed_diff = utils.lmap(-speed_target_diff, self.config["reward_speed_diff_range_neg"], [0, 1])
         #self.lat_speed_buffer = np.roll(self.lat_speed_buffer,1)
         #self.lat_speed_buffer[0] = self.vehicle.velocity[1]
         #lat_variation = np.sum(np.abs(self.lat_speed_buffer[1:]-self.lat_speed_buffer[:-1]))
@@ -123,8 +136,10 @@ class HighwayEnv(AbstractEnv):
         reward = \
             + self.config["collision_reward"] * self.vehicle.crashed \
             + self.config["right_lane_reward"] * lane / max(len(neighbours) - 1, 1) \
-            + self.config["high_speed_reward"] * np.clip(scaled_speed, 0, 1) \
-            + self.config["reward_rear_brake"] * np.clip(scaled_deceleration, 0,1)
+            + self.config["reward_speed_close_to_target"] * np.clip(scaled_speed_diff, 0, 1) * is_terminal \
+            + self.config["reward_rear_brake"] * np.clip(scaled_deceleration, 0, 1)
+            #+ self.config["high_speed_reward"] * np.clip(scaled_speed, 0, 1) \
+
         #reward = utils.lmap(reward,
         #                  [self.config["collision_reward"],
         #                   self.config["high_speed_reward"] + self.config["right_lane_reward"]],

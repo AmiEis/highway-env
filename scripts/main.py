@@ -8,7 +8,7 @@ from sys import exit
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 n_envs = 16
-alg = 'DQN'
+alg = 'PPO'
 tensorboard_log = "highway_{}/".format(alg.lower())
 save_freq = 1_000_000
 
