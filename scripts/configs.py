@@ -1,8 +1,8 @@
-simulation_frequency = 9
-policy_frequency = 3
-vehicles_density = 1.0
+simulation_frequency = 12
+policy_frequency = 4
+vehicles_density = 1.5
 right_lane_reward = 0.01
-high_speed_reward = 0.2
+high_speed_reward = 0.1
 collision_reward = -3.0
 reward_rear_brake = -0.3
 
@@ -42,13 +42,23 @@ image_obs_config = {
         },
     }
 
+action_config = {
+    "action": {
+                "type": "DiscreteAction",
+                "acceleration_range": [-5.0, 5.0],
+                "steering_range": [-0.05,0.05],
+                "actions_per_axis": 5,
+            },
+}
+
 
 def get_config(is_test=False, obs_type="image"):
     config = base_config
     if obs_type == "image":
         config.update(image_obs_config)
     else:
-        raise TypeError('obs time currently not supported in configs')
+        raise TypeError('obs type currently not supported in configs')
+    config.update(action_config)
     if is_test:
         config.update(test_config)
     else:
