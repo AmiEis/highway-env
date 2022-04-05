@@ -75,7 +75,7 @@ class HighwayEnv(AbstractEnv):
         for others in other_per_controlled:
             #Added so that the ego will not necessarily be at the back position
             #It will be randomly positioned between the other vehicles
-            split = self.np_random.randint(others - 1)
+            split = self.np_random.randint(others//2)
             for _ in range(split):
                 target_speed = self.np_random.uniform(1.0*self.config["speed_limit"],1.2*self.config["speed_limit"])
                 speed = target_speed + self.np_random.normal(0,2)
@@ -124,7 +124,7 @@ class HighwayEnv(AbstractEnv):
             + self.config["collision_reward"] * self.vehicle.crashed \
             + self.config["right_lane_reward"] * lane / max(len(neighbours) - 1, 1) \
             + self.config["high_speed_reward"] * np.clip(scaled_speed, 0, 1) \
-            + self.config["reward_rear_brake"] * np.clip(scaled_deceleration, 0,1)
+            + self.config["reward_rear_brake"] * np.clip(scaled_deceleration, 0, 1)
         #reward = utils.lmap(reward,
         #                  [self.config["collision_reward"],
         #                   self.config["high_speed_reward"] + self.config["right_lane_reward"]],
