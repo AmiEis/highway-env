@@ -216,9 +216,6 @@ class AbstractEnv(gym.Env):
 
         self.steps += 1
         self._simulate(action)
-        if isinstance(self, he.HighwayEnv):
-            self.mean_speed = float(self.steps)/(float(self.steps)+1)*self.mean_speed\
-                              + 1.0/(float(self.steps) + 1)*self.vehicle.speed
 
         obs = self.observation_type.observe()
         reward = self._reward(action)
