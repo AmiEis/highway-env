@@ -16,12 +16,16 @@ class Vehicle(Structure):
 def vehicle_py_to_ctypes(v_py):
     v_ctypes = Vehicle()
     v_ctypes.speed = v_py.speed
-    v_ctypes.target_speed = v_py.target_speed
+    # In case agent is does not use MetaDiscreteAction it doesn't have a target speed.
+    # All other vehicles should have a target speed
+    if hasattr(v_py,"target_speed"): v_ctypes.target_speed = v_py.target_speed
     v_ctypes.position = DOUBLE2(v_py.position[0], v_py.position[1])
     v_ctypes.velocity = DOUBLE2(v_py.velocity[0], v_py.velocity[1])
     v_ctypes.heading = v_py.heading
     v_ctypes.lane_index = v_py.lane_index[2]
-    v_ctypes.target_lane_index = v_py.target_lane_index[2]
+    #Here again, if agent does not use MetaDiscreteAction it doesn't have a target lane index
+    #In this case we will not use this attribute, in accordance with the origianl Python code (this field is used in change_lane_policy)
+    v_ctypes.target_lane_index = v_py.target_lane_index[2] if hasattr(v_py,"target_lane_index") else -1
     if isinstance(v_py,IDMVehicle):
         v_ctypes.timer = v_py.timer
         v_ctypes.DELTA = v_py.DELTA
