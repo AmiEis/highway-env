@@ -48,12 +48,16 @@ class HighwayEnv(AbstractEnv):
                                        # lower speeds according to config["reward_speed_range"].
             "lane_change_reward": 0,   # The reward received at each lane change action.
             "reward_speed_range": [20, 30],
+            "target_speed": 30,
             "reward_rear_brake": -0.4,
             "reward_rear_deceleration_range": [3.5, 6],
+            "reward_off_road": -1,
             "offroad_terminal": False,
             "speed_limit": 30,
             "lat_speed_buffer_size": 6
         })
+        config["reward_speed_range_lower"] = [config["target_speed"] - 10,config["target_speed"]]
+        config["reward_speed_range_upper"] = [config["target_speed"],config["target_speed"] + 5]
         return config
 
 
@@ -111,7 +115,10 @@ class HighwayEnv(AbstractEnv):
         neighbours = self.road.network.all_side_lanes(self.vehicle.lane_index)
         lane = self.vehicle.target_lane_index[2] if isinstance(self.vehicle, ControlledVehicle) \
             else self.vehicle.lane_index[2]
-        scaled_speed = utils.lmap(self.vehicle.speed, self.config["reward_speed_range"], [0, 1])
+        if self.vehicle.speed <= self.config["target_speed"]:
+            scaled_speed = utils.lmap(self.vehicle.speed, self.config["reward_speed_range_lower"], [0, 1])
+        else:
+            scaled_speed = 1 - utils.lmap(self.vehicle.speed, self.config["reward_speed_range_upper"], [0, 1])
         rear_break = self.calc_rear_break()
         scaled_deceleration = utils.lmap(-rear_break,self.config["reward_rear_deceleration_range"], [0,1])
         #self.lat_speed_buffer = np.roll(self.lat_speed_buffer,1)
@@ -125,11 +132,12 @@ class HighwayEnv(AbstractEnv):
             + self.config["right_lane_reward"] * lane / max(len(neighbours) - 1, 1) \
             + self.config["high_speed_reward"] * np.clip(scaled_speed, 0, 1) \
             + self.config["reward_rear_brake"] * np.clip(scaled_deceleration, 0, 1)
+            #+ self.config["reward_off_road"] * (not self.vehicle.on_road)
         #reward = utils.lmap(reward,
         #                  [self.config["collision_reward"],
         #                   self.config["high_speed_reward"] + self.config["right_lane_reward"]],
         #                  [0, 1])
-        reward = 0 if not self.vehicle.on_road else reward
+        reward = -self.config["high_speed_reward"] if not self.vehicle.on_road else reward
         return reward
 
     def calc_rear_break(self, is_test=False):
