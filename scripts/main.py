@@ -57,7 +57,7 @@ if __name__ == "__main__":
     # Save a checkpoint every save_freq steps
     checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=models_dir,
                                              name_prefix=alg)
-    model.learn(8_000_000,callback=checkpoint_callback)
+    model.learn(18_000_000,callback=checkpoint_callback)
     # for i in range(1,8):
     #     model.learn(1_000_000,reset_num_timesteps=True if i==0 else False)
     #     model.save(os.path.join(models_dir, "no_" + str(i)))

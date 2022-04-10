@@ -24,11 +24,11 @@ if __name__ == "__main__":
     if not os.path.exists(image_folder):
         os.makedirs(image_folder)
 
-    Show = False
+    Show = True
     action_type = 'DiscreteAction'
     #env = gym.make("highway-fast-v0", config=config)
     #env = highway_env.envs.HighwayEnvFast(config)
-    env = highway_env.envs.HighwayEnvFast(get_config(is_test=False))
+    env = highway_env.envs.HighwayEnvFast(get_config(is_test=True))
     env.config["action"]["type"] = action_type
     env.seed(1234)
     env.reset()
@@ -71,7 +71,7 @@ if __name__ == "__main__":
             end_step = time.perf_counter()
             lane_change = ego_vehicle_lane != env.vehicle.lane_index
             if lane_change:
-                has_rear, rear_break = env.calc_rear_break(is_test=True)
+                has_rear, rear_break,_ = env.calc_rear_break_front_dist(is_test=True)
                 if has_rear:
                     lane_changes_n += 1
                     if rear_break <= -5:

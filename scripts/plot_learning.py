@@ -12,7 +12,7 @@ from os import makedirs
 env = highway_env.envs.HighwayEnvFast(get_config(is_test=False))
 action_type = 'DiscreteAction'
 env.config["action"]["type"] = action_type
-n_scenes = 200
+n_scenes = 400
 success_rate = []
 km_per_collision = []
 mean_speeds = []
@@ -58,7 +58,7 @@ if __name__ == "__main__":
                 obs, reward, done, info = env.step(action)
                 lane_change = ego_vehicle_lane != env.vehicle.lane_index
                 if lane_change:
-                    has_rear, rear_break = env.calc_rear_break(is_test=True)
+                    has_rear, rear_break,_ = env.calc_rear_break_front_dist(is_test=True)
                     if has_rear:
                         lane_changes_n += 1
                         if rear_break <= -5:
