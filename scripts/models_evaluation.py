@@ -17,24 +17,26 @@ if __name__ == "__main__":
     #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_07-03-2022.zip")
     #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_14-03-2022\no_4.zip")
     #model = DQN.load(r"D:\projects\RL\highway-env\models\DQN_17-03-2022\DQN_2000000_steps.zip")
-    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_22-03-2022\PPO_8000000_steps.zip")
-    Save = True
+    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_07-04-2022\PPO_18000000_steps.zip")
+    Save = False
     datetimestr = datetime.now().strftime('%d-%m-%Y')
     image_folder = r"D:\projects\RL\highway-env\results\\"+datetimestr+r"\\"
     if not os.path.exists(image_folder):
         os.makedirs(image_folder)
 
     Show = False
+    action_type = 'DiscreteAction'
     #env = gym.make("highway-fast-v0", config=config)
     #env = highway_env.envs.HighwayEnvFast(config)
-    env = highway_env.envs.HighwayEnvFast(get_config(is_test=True))
+    env = highway_env.envs.HighwayEnvFast(get_config(is_test=False))
+    env.config["action"]["type"] = action_type
     env.seed(1234)
     env.reset()
     myImageRenderer = MyImageRenderer(env)
     n_collisions = 0
     n_off_road = 0
     n_success = 0
-    n_scenes = 3#1000
+    n_scenes = 1000
     mean_speed = 0
     cnt = 0
     cnt_mean_speed_close_to_target_5_pct = 0
@@ -52,13 +54,13 @@ if __name__ == "__main__":
         #print('Time to reset: ',end_reset - start_reset)
         done = False
         step_times = []
-        target_speeds = [v.target_speed for v in env.road.vehicles]
+        #target_speeds = [v.target_speed for v in env.road.vehicles]
         #print(env.road.vehicles[2].target_speed,env.road.vehicles[2].speed)
         speeds = [v.speed for v in env.road.vehicles]
         pos_start = env.vehicle.position[0]
         while not done:
             action, _ = model.predict(obs,deterministic=True)
-            ego_speed = env.controlled_vehicles[0].speed
+            ego_speed = env.vehicle.speed
             #print('action = {}, speed = {}, lane = {}'.format(action, ego_speed,env.vehicle.target_lane_index[2]))
             #print(env.road.vehicles[2].speed)
             mean_speed = float(cnt)/(cnt+1)*mean_speed + 1.0/(cnt + 1)*ego_speed
