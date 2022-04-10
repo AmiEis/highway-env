@@ -1,10 +1,13 @@
 simulation_frequency = 12
 policy_frequency = 4
-vehicles_density = 1.5
+vehicles_density = 1
 right_lane_reward = 0.01
 high_speed_reward = 0.1
 collision_reward = -3.0
 reward_rear_brake = -0.3
+reward_off_road = -3.0
+reward_front_dist = -0.3
+reward_non_centered = -0.03
 
 duration_train_sec = 10
 duration_train_steps = simulation_frequency * duration_train_sec
@@ -21,6 +24,8 @@ base_config = {"simulation_frequency": simulation_frequency,
                "right_lane_reward": right_lane_reward,
                "collision_reward": collision_reward,
                "reward_rear_brake": reward_rear_brake,
+               "reward_front_dist": reward_front_dist,
+               "reward_off_road": reward_off_road,
                "centering_position": [0.35, 0.5]}
 
 train_config = {"duration": duration_train_steps,

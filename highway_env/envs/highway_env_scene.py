@@ -51,6 +51,9 @@ class HighwayEnv(AbstractEnv):
             "target_speed": 30,
             "reward_rear_brake": -0.4,
             "reward_rear_deceleration_range": [3.5, 6],
+            "reward_front_dist": -0.4,
+            "reward_front_dist_range": [0, 10],
+            "reward_non_centered": -0.05,
             "reward_off_road": -1,
             "offroad_terminal": False,
             "speed_limit": 30,
@@ -119,19 +122,17 @@ class HighwayEnv(AbstractEnv):
             scaled_speed = utils.lmap(self.vehicle.speed, self.config["reward_speed_range_lower"], [0, 1])
         else:
             scaled_speed = 1 - utils.lmap(self.vehicle.speed, self.config["reward_speed_range_upper"], [0, 1])
-        rear_break = self.calc_rear_break()
+        rear_break, front_dist = self.calc_rear_break_front_dist()
         scaled_deceleration = utils.lmap(-rear_break,self.config["reward_rear_deceleration_range"], [0,1])
-        #self.lat_speed_buffer = np.roll(self.lat_speed_buffer,1)
-        #self.lat_speed_buffer[0] = self.vehicle.velocity[1]
-        #lat_variation = np.sum(np.abs(self.lat_speed_buffer[1:]-self.lat_speed_buffer[:-1]))
-        #lat_variation_normed =\
-        #    lat_variation/utils.not_zero(abs(self.lat_speed_buffer[-1] - self.lat_speed_buffer[0]))
-        #print(lat_variation,lat_variation_normed)
+        scaled_front_distance = 1 - utils.lmap(front_dist, self.config["reward_front_dist_range"],[0,1])
+        dist_from_lane_center = abs(self.vehicle.lane.local_coordinates(self.vehicle.position)[1])
+        scaled_dist_from_lane_center = utils.lmap(dist_from_lane_center,[0,0.5*self.vehicle.lane.DEFAULT_WIDTH],[0,1])
         reward = \
             + self.config["collision_reward"] * self.vehicle.crashed \
             + self.config["right_lane_reward"] * lane / max(len(neighbours) - 1, 1) \
             + self.config["high_speed_reward"] * np.clip(scaled_speed, 0, 1) \
-            + self.config["reward_rear_brake"] * np.clip(scaled_deceleration, 0, 1)
+            + self.config["reward_rear_brake"] * np.clip(scaled_deceleration, 0, 1)\
+            + self.config["reward_front_dist"] * np.clip(scaled_front_distance, 0, 1)
             #+ self.config["reward_off_road"] * (not self.vehicle.on_road)
         #reward = utils.lmap(reward,
         #                  [self.config["collision_reward"],
@@ -140,9 +141,12 @@ class HighwayEnv(AbstractEnv):
         reward = -self.config["high_speed_reward"] if not self.vehicle.on_road else reward
         return reward
 
-    def calc_rear_break(self, is_test=False):
-        _, rear = self.road.neighbour_vehicles(self.vehicle)
+    def calc_rear_break_front_dist(self, is_test=False):
+        #calculated in one go so the two calculations have to find front/rear
+        # and thus iterate on all vehicles
+        front, rear = self.road.neighbour_vehicles(self.vehicle)
         if not rear is None:
+            #Find if agent is changing lane, and if its follower is forced to make an emergency break
             rear_acc = rear.action['acceleration']
             #check that the agent is changing lane, and the following vehicle is in the target lane
             is_lane_change = abs(self.vehicle.heading) > np.deg2rad(5) \
@@ -150,13 +154,15 @@ class HighwayEnv(AbstractEnv):
             if isinstance(self.observation_type,MyHighwayGrayscale):
                 is_in_obs = self.observation_type.renderer.is_in_image(rear)
                 is_lane_change = is_lane_change and is_in_obs # Cannot punish aggressive behaviour when vehicle not in sight
-            if is_test:
-                return is_lane_change, rear_acc
-            return is_lane_change * rear_acc
         else:
-            if is_test:
-                return False, 0
-            return 0
+            rear_acc = 0
+            is_lane_change = False
+        if front is not None:
+            dist = front.position[0] - self.vehicle.position[0]
+        else: dist = np.inf
+        if is_test:
+            return is_lane_change, rear_acc, dist
+        return is_lane_change * rear_acc, dist
 
     def _is_terminal(self) -> bool:
         """The episode is over if the ego vehicle crashed or the time is out."""
