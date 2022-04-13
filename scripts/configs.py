@@ -9,12 +9,12 @@ reward_off_road = -3.0
 reward_front_dist = -0.3
 reward_non_centered = -0.03
 
-duration_train_sec = 10
-duration_train_steps = simulation_frequency * duration_train_sec
+duration_train_sec = 30
+duration_train_steps = policy_frequency * duration_train_sec
 vehicles_train_count = 10
 
-duration_test_sec = 30
-duration_test_steps = simulation_frequency * duration_test_sec
+duration_test_sec = 90
+duration_test_steps = policy_frequency * duration_test_sec
 vehicles_test_count = 60
 
 base_config = {"simulation_frequency": simulation_frequency,
@@ -49,7 +49,7 @@ image_obs_config = {
 
 action_config = {
     "action": {
-                "type": "DiscreteAction",
+                "type": "DiscreteMetaAction",
                 "acceleration_range": [-5.0, 5.0],
                 "steering_range": [-0.05,0.05],
                 "actions_per_axis": 5,
