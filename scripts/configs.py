@@ -1,5 +1,10 @@
-simulation_frequency = 12
-policy_frequency = 4
+large_obs_dims = (256, 64)
+#Use with DQN, TD3, SAC
+small_obs_dims = (160, 64)
+
+
+simulation_frequency = 6
+policy_frequency = 2
 vehicles_density = 1
 right_lane_reward = 0.01
 high_speed_reward = 0.1
@@ -15,7 +20,8 @@ vehicles_train_count = 10
 
 duration_test_sec = 90
 duration_test_steps = policy_frequency * duration_test_sec
-vehicles_test_count = 60
+vehicles_test_count = 30
+
 
 base_config = {"simulation_frequency": simulation_frequency,
                "policy_frequency": policy_frequency,
@@ -40,7 +46,7 @@ image_obs_config = {
         "observation": {
             #"type": "GrayscaleObservation",
             "type": "MyImageObservation",
-            "observation_shape": (256, 64),
+            "observation_shape": large_obs_dims,
             "stack_size": 4,
             "weights": [0.2989, 0.5870, 0.1140],  # weights for RGB conversion
             "scaling": 2.5,
