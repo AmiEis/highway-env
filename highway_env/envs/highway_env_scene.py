@@ -22,6 +22,8 @@ class HighwayEnv(AbstractEnv):
     def __init__(self, config: dict = None):
         super().__init__(config)
         self.actAccelerator = ActAccelerator()
+        self.orig_pos = 0
+        self.max_dist = (30.0 * config["duration"]) / config["policy_frequency"]
         self.lat_speed_buffer = np.zeros(self.config["lat_speed_buffer_size"])
 
     @classmethod
@@ -57,7 +59,9 @@ class HighwayEnv(AbstractEnv):
             "reward_off_road": -1,
             "offroad_terminal": False,
             "speed_limit": 30,
-            "lat_speed_buffer_size": 6
+            "lat_speed_buffer_size": 6,
+            "explicit_speed_reward": True,
+            "distance_reward": 2
         })
         config["reward_speed_range_lower"] = [config["target_speed"] - 10,config["target_speed"]]
         config["reward_speed_range_upper"] = [config["target_speed"],config["target_speed"] + 5]
@@ -67,6 +71,8 @@ class HighwayEnv(AbstractEnv):
     def _reset(self) -> None:
         self._create_road()
         self._create_vehicles()
+        self.orig_pos = self.vehicle.position[0]
+
 
     def _create_road(self) -> None:
         """Create a road composed of straight adjacent lanes."""
@@ -127,10 +133,19 @@ class HighwayEnv(AbstractEnv):
         scaled_front_distance = 1 - utils.lmap(front_dist, self.config["reward_front_dist_range"],[0,1])
         dist_from_lane_center = abs(self.vehicle.lane.local_coordinates(self.vehicle.position)[1])
         scaled_dist_from_lane_center = utils.lmap(dist_from_lane_center,[0,0.5*self.vehicle.lane.DEFAULT_WIDTH],[0,1])
+        if self.config["explicit_speed_reward"]:
+           speed_reward = self.config["high_speed_reward"] * np.clip(scaled_speed, 0, 1)
+        else:
+            if self.vehicle.crashed or self.steps >= self.config["duration"]:
+                distance_travelled = self.vehicle.position[0] - self.orig_pos
+                distance_grade = 1 - abs(self.max_dist - distance_travelled)/self.max_dist
+                speed_reward = self.config["distance_reward"] * np.clip(distance_grade, 0, 1)
+            else:
+                speed_reward = 0
         reward = \
             + self.config["collision_reward"] * self.vehicle.crashed \
             + self.config["right_lane_reward"] * lane / max(len(neighbours) - 1, 1) \
-            + self.config["high_speed_reward"] * np.clip(scaled_speed, 0, 1) \
+            + speed_reward \
             + self.config["reward_rear_brake"] * np.clip(scaled_deceleration, 0, 1)\
             + self.config["reward_front_dist"] * np.clip(scaled_front_distance, 0, 1)
             #+ self.config["reward_off_road"] * (not self.vehicle.on_road)
