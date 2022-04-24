@@ -6,7 +6,6 @@ small_obs_dims = (160, 64)
 simulation_frequency = 6
 policy_frequency = 2
 vehicles_density = 1
-explicit_speed_reward = True
 right_lane_reward = 0.01
 high_speed_reward = 0.1
 collision_reward = -3.0
@@ -14,7 +13,6 @@ reward_rear_brake = -0.3
 reward_off_road = -3.0
 reward_front_dist = -0.3
 reward_non_centered = -0.03
-distance_reward = 3.0
 
 duration_train_sec = 30
 duration_train_steps = policy_frequency * duration_train_sec
@@ -34,9 +32,7 @@ base_config = {"simulation_frequency": simulation_frequency,
                "reward_rear_brake": reward_rear_brake,
                "reward_front_dist": reward_front_dist,
                "reward_off_road": reward_off_road,
-               "centering_position": [0.35, 0.5],
-               "explicit_speed_reward": explicit_speed_reward,
-               "distance_reward": distance_reward}
+               "centering_position": [0.35, 0.5]}
 
 train_config = {"duration": duration_train_steps,
                 "vehicles_count": vehicles_train_count}
@@ -50,7 +46,7 @@ image_obs_config = {
         "observation": {
             #"type": "GrayscaleObservation",
             "type": "MyImageObservation",
-            "observation_shape": small_obs_dims,
+            "observation_shape": large_obs_dims,
             "stack_size": 4,
             "weights": [0.2989, 0.5870, 0.1140],  # weights for RGB conversion
             "scaling": 2.5,
