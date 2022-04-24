@@ -17,15 +17,15 @@ if __name__ == "__main__":
     #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_07-03-2022.zip")
     #model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_14-03-2022\no_4.zip")
     #model = DQN.load(r"D:\projects\RL\highway-env\models\DQN_17-03-2022\DQN_2000000_steps.zip")
-    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_07-04-2022\PPO_18000000_steps.zip")
-    Save = False
+    model = PPO.load(r"D:\projects\RL\highway-env\models\PPO_24-04-2022\PPO_1000000_steps.zip")
+    Save = True
     datetimestr = datetime.now().strftime('%d-%m-%Y')
     image_folder = r"D:\projects\RL\highway-env\results\\"+datetimestr+r"\\"
     if not os.path.exists(image_folder):
         os.makedirs(image_folder)
 
-    Show = True
-    action_type = 'DiscreteAction'
+    Show = False
+    action_type = 'DiscreteMetaAction'
     #env = gym.make("highway-fast-v0", config=config)
     #env = highway_env.envs.HighwayEnvFast(config)
     env = highway_env.envs.HighwayEnvFast(get_config(is_test=True))
@@ -36,9 +36,11 @@ if __name__ == "__main__":
     n_collisions = 0
     n_off_road = 0
     n_success = 0
-    n_scenes = 1000
+    n_scenes = 5#1000
     mean_speed = 0
+    global_mean_speed = 0
     cnt = 0
+    global_count = 0
     cnt_mean_speed_close_to_target_5_pct = 0
     cnt_mean_speed_close_to_target_10_pct = 0
     speeds = []
@@ -64,7 +66,9 @@ if __name__ == "__main__":
             #print('action = {}, speed = {}, lane = {}'.format(action, ego_speed,env.vehicle.target_lane_index[2]))
             #print(env.road.vehicles[2].speed)
             mean_speed = float(cnt)/(cnt+1)*mean_speed + 1.0/(cnt + 1)*ego_speed
+            global_mean_speed = float(global_count)/(global_count+1)*global_mean_speed + 1.0/(global_count + 1)*ego_speed
             cnt += 1
+            global_count += 1
             ego_vehicle_lane = env.vehicle.lane_index
             start_step = time.perf_counter()
             obs, reward, done, info = env.step(action)
@@ -136,4 +140,5 @@ if __name__ == "__main__":
     print("km per collision: {}".format((distance_passed/1000)/float(n_collisions)))
     print("Rate Ego speed at 5% of target speed: ",float(cnt_mean_speed_close_to_target_5_pct)/n_scenes)
     print("Rate Ego speed at 10% of target speed: ",float(cnt_mean_speed_close_to_target_10_pct)/n_scenes)
+    print("Mean Speed = ",global_mean_speed)
     print("Rate of emergency breaks per lane change: ",float(rear_breaking_n)/float(lane_changes_n))
