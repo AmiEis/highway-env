@@ -52,7 +52,7 @@ class HighwayEnv(AbstractEnv):
             "reward_rear_brake": -0.4,
             "reward_rear_deceleration_range": [3.5, 6],
             "reward_front_dist": -0.4,
-            "reward_front_dist_range": [0, 10],
+            "reward_front_dist_range": [10, 20],
             "reward_non_centered": -0.05,
             "reward_off_road": -1,
             "offroad_terminal": False,
