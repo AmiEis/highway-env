@@ -3,7 +3,7 @@ from gym.envs.registration import register
 
 from highway_env import utils
 from highway_env.envs.common.abstract import AbstractEnv
-from highway_env.envs.common.action import Action
+from highway_env.envs.common.action import Action, DiscreteMetaAction
 from highway_env.road.road import Road, RoadNetwork
 from highway_env.utils import near_split
 from highway_env.vehicle.controller import ControlledVehicle
@@ -138,6 +138,8 @@ class HighwayEnv(AbstractEnv):
         #                  [self.config["collision_reward"],
         #                   self.config["high_speed_reward"] + self.config["right_lane_reward"]],
         #                  [0, 1])
+        if not isinstance(self.action_type,DiscreteMetaAction):
+            reward += self.config["reward_non_centered"] * np.clip(scaled_dist_from_lane_center, 0, 1)
         reward = -self.config["high_speed_reward"] if not self.vehicle.on_road else reward
         return reward
 
