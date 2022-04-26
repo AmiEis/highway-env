@@ -70,6 +70,11 @@ class AbstractEnv(gym.Env):
         self.rendering_mode = 'human'
         self.enable_auto_render = False
 
+        #safety controller (Added by me (Ami))
+        self.ego_position_rec = None
+        self.ego_speed_rec = None
+        self.ego_heading_rec = None
+
         self.reset()
 
     @property
@@ -219,10 +224,35 @@ class AbstractEnv(gym.Env):
 
         obs = self.observation_type.observe()
         reward = self._reward(action)
+        if isinstance(self, he.HighwayEnv) and isinstance(self.action_type, DiscreteMetaAction):
+            self.safety_control(action)
         terminal = self._is_terminal()
         info = self._info(obs, action)
 
         return obs, reward, terminal, info
+
+    def safety_control(self, action):
+        front,_ = self.road.neighbour_vehicles(self.vehicle,self.vehicle.lane_index)
+        if front is not None:
+            dv = self.vehicle.speed - front.speed
+            d_min = front.LENGTH + front.DISTANCE_WANTED
+            d = front.position[0] - self.vehicle.position[0]
+            if d - dv * (1 / self.config["policy_frequency"]) < d_min:
+                self.vehicle.speed = self.ego_speed_rec
+                self.vehicle.position = self.ego_position_rec
+                self.vehicle.heading = self.ego_heading_rec
+                if action == 3 or action == 1:#action = FASTER
+                    if action == 3:
+                        action = 1 # IDLE
+                    else:
+                        action = 4 # SLOWER
+                    self.action_type.act(action)
+                    frames = int(self.config["simulation_frequency"] // self.config["policy_frequency"])
+                    for frame in range(frames):
+                        self.vehicle.act()
+                        self.vehicle.step(1 / self.config["simulation_frequency"])
+                        for other in self.road.vehicles[1:]:
+                            self.vehicle.handle_collisions(other, 1 / self.config["simulation_frequency"])
 
     def _simulate(self, action: Optional[Action] = None) -> None:
         """Perform several steps of simulation with constant action."""
@@ -240,6 +270,9 @@ class AbstractEnv(gym.Env):
             else:
                 self.road.act()
 
+            self.ego_position_rec = self.vehicle.position
+            self.ego_speed_rec = self.vehicle.speed
+            self.ego_heading_rec = self.vehicle.heading
             self.road.step(1 / self.config["simulation_frequency"])
             self.time += 1
 
