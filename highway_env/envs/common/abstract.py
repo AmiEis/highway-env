@@ -15,6 +15,7 @@ from highway_env.vehicle.behavior import IDMVehicle, LinearVehicle
 from highway_env.vehicle.controller import MDPVehicle
 from highway_env.vehicle.kinematics import Vehicle
 import highway_env.envs.highway_env_scene as he
+from highway_env.utils import are_polygons_intersecting
 import time
 
 Observation = np.ndarray
@@ -224,38 +225,63 @@ class AbstractEnv(gym.Env):
 
         obs = self.observation_type.observe()
         reward = self._reward(action)
-        if isinstance(self, he.HighwayEnv) and isinstance(self.action_type, DiscreteMetaAction):
+        if isinstance(self, he.HighwayEnv)\
+                and isinstance(self.action_type, DiscreteMetaAction) and self.use_safety_control:
             self.safety_control(action)
         terminal = self._is_terminal()
         info = self._info(obs, action)
-
         return obs, reward, terminal, info
 
     def safety_control(self, action):
+        dt = 1 / self.config["policy_frequency"]
         front,_ = self.road.neighbour_vehicles(self.vehicle,self.vehicle.lane_index)
+        action_orig = action
         if front is not None:
             dv = self.vehicle.speed - front.speed
             d_min = front.LENGTH + front.DISTANCE_WANTED
             d = front.position[0] - self.vehicle.position[0]
-            if d - dv * (1 / self.config["policy_frequency"]) < d_min:
-                self.vehicle.speed = self.ego_speed_rec
-                self.vehicle.position = self.ego_position_rec
-                self.vehicle.heading = self.ego_heading_rec
+            if d - dv * dt < d_min:
                 if action == 3 or action == 1:#action = FASTER
                     if action == 3:
-                        action = 1 # IDLE
+                        dv2 = self.ego_speed_rec - front.speed
+                        if d - dv2 * dt < d_min:
+                            action = 4 # SLOWER
+                        else:
+                            action = 1 #IDLE
                     else:
                         action = 4 # SLOWER
-                    self.action_type.act(action)
-                    frames = int(self.config["simulation_frequency"] // self.config["policy_frequency"])
-                    for frame in range(frames):
-                        self.vehicle.act()
-                        self.vehicle.step(1 / self.config["simulation_frequency"])
-                        for other in self.road.vehicles[1:]:
-                            self.vehicle.handle_collisions(other, 1 / self.config["simulation_frequency"])
+        if self.vehicle.target_lane_index != self.vehicle.lane_index:
+            front, rear = self.road.neighbour_vehicles(self.vehicle, self.vehicle.target_lane_index)
+            will_intersect_front = False
+            will_intersect_rear = False
+            if front is not None:
+                _, will_intersect_front,_ = \
+                    are_polygons_intersecting(front.polygon(),self.vehicle.polygon(),
+                                              front.velocity * dt, self.vehicle.velocity * dt)
+            if rear is not None:
+                _, will_intersect_rear, _ = \
+                    are_polygons_intersecting(rear.polygon(), self.vehicle.polygon(),
+                                              rear.velocity * dt, self.vehicle.velocity * dt)
+            if will_intersect_front or will_intersect_rear:
+                action = 1 #IDLE - do not change lane
+                self.vehicle.target_lane_index = self.vehicle.lane_index
+        if action != action_orig:
+            self.vehicle.speed = self.ego_speed_rec
+            self.vehicle.position = self.ego_position_rec
+            self.vehicle.heading = self.ego_heading_rec
+            self.action_type.act(action)
+            frames = int(self.config["simulation_frequency"] // self.config["policy_frequency"])
+            for frame in range(frames):
+                self.vehicle.act()
+                self.vehicle.step(1 / self.config["simulation_frequency"])
+                for other in self.road.vehicles[1:]:
+                    self.vehicle.handle_collisions(other, 1 / self.config["simulation_frequency"])
 
     def _simulate(self, action: Optional[Action] = None) -> None:
         """Perform several steps of simulation with constant action."""
+        self.ego_position_rec = np.array([self.vehicle.position[0], self.vehicle.position[1]])
+        self.ego_speed_rec = self.vehicle.speed
+        self.ego_heading_rec = self.vehicle.heading
         frames = int(self.config["simulation_frequency"] // self.config["policy_frequency"])
         for frame in range(frames):
             # Forward action to the vehicle
@@ -270,9 +296,6 @@ class AbstractEnv(gym.Env):
             else:
                 self.road.act()
 
-            self.ego_position_rec = self.vehicle.position
-            self.ego_speed_rec = self.vehicle.speed
-            self.ego_heading_rec = self.vehicle.heading
             self.road.step(1 / self.config["simulation_frequency"])
             self.time += 1
 

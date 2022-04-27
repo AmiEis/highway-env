@@ -19,8 +19,9 @@ class HighwayEnv(AbstractEnv):
     staying on the rightmost lanes and avoiding collisions.
     """
 
-    def __init__(self, config: dict = None):
+    def __init__(self, config: dict = None, use_safety_control=False):
         super().__init__(config)
+        self.use_safety_control = use_safety_control
         self.actAccelerator = ActAccelerator()
         self.lat_speed_buffer = np.zeros(self.config["lat_speed_buffer_size"])
 
