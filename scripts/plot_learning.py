@@ -21,7 +21,7 @@ ego_speed_at_10pct = []
 emergency_breaks_pct = []
 
 if __name__ == "__main__":
-    base_dir = r"D:\projects\RL\highway-env\models\PPO_07-04-2022"
+    base_dir = r"D:\projects\RL\highway-env\models\PPO_10-04-2022"
     datestr = base_dir.split('\\')[-1].split('_')[-1]
     image_folder = r"D:\projects\RL\highway-env\results\graphs\\" + datestr + r"\\"
     if not exists(image_folder):
@@ -78,12 +78,13 @@ if __name__ == "__main__":
             #    cnt_mean_speed_close_to_target_10_pct += 1
         cnt = 0
         success_rate.append(float(n_success)/n_scenes)
-        km_per_collision.append((distance_passed/1000)/max(float(n_collisions),1e-16))
+        km_per_collision.append((distance_passed/1000.0)/max(float(n_collisions),1e-16))
         mean_speeds.append(mean_speed)
         #ego_speed_at_5pct.append(float(cnt_mean_speed_close_to_target_5_pct)/n_scenes)
         #ego_speed_at_10pct.append(float(cnt_mean_speed_close_to_target_10_pct)/n_scenes)
         emergency_breaks_pct.append(float(rear_breaking_n)/max(float(lane_changes_n),1e-16))
-    ran = range(1,len(listdir(base_dir))+1)
+    check_point_msteps = 0.5
+    ran = [i * check_point_msteps for i in range(1,len(listdir(base_dir))+1)]
     fig, axs = plt.subplots(2,1)
     axs[0].plot(ran, success_rate)
     axs[0].set_title('Success rate %')
